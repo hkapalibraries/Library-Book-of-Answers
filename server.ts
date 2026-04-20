@@ -168,8 +168,8 @@ Return ONLY valid JSON without any Markdown tags like \`\`\`json or \`\`\`. Plea
       if (!response.ok) {
         const errorData = await response.text();
         console.error('Grok API error:', errorData);
-        console.warn('Falling back to random answers due to API error.');
-        return res.json(fallbackResult);
+        // Throw proper error to force frontend catch block!
+        return res.status(502).json({ error: 'Grok API returned an error', details: errorData });
       }
 
       const data = await response.json();
@@ -184,46 +184,8 @@ Return ONLY valid JSON without any Markdown tags like \`\`\`json or \`\`\`. Plea
       res.json(result);
     } catch (error) {
       console.error('Divination error:', error);
-      
-      // Fallback on any other error
-      const zhAnswers = [
-        { title: "就是現在", interpretation: "別再等待完美時機，現在就是最好的開始。" },
-        { title: "刪繁就簡", interpretation: "目前的困惑源於想得太多。試著去掉那些不必要的細節。" },
-        { title: "換個環境", interpretation: "答案不在你現在坐的位置，起身去另一個角落吧。" },
-        { title: "值得付出", interpretation: "雖然過程艱辛，但最終的結果會讓你覺得一切都值得。" },
-        { title: "暫時放下", interpretation: "先去喝杯咖啡或散個步。當你不再苦思時，靈感會自己敲門。" },
-        { title: "這不是重點", interpretation: "你正在糾結的問題其實並不關鍵，看遠一點。" },
-        { title: "專注於當下", interpretation: "不要擔心中場休息後的結果，先處理好眼前的這段旋律。" }
-      ];
-
-      const enAnswers = [
-        { title: "The Time is Now", interpretation: "Stop waiting for the perfect moment. Now is the best time to start." },
-        { title: "Simplify", interpretation: "Your confusion stems from overthinking. Try removing unnecessary details." },
-        { title: "Change Your Environment", interpretation: "The answer isn't where you are sitting now. Get up and go somewhere else." },
-        { title: "It's Worth It", interpretation: "The process may be tough, but the result will make it all worthwhile." },
-        { title: "Let It Go for Now", interpretation: "Go for a coffee or a walk. Inspiration will knock when you stop forcing it." },
-        { title: "Missing the Point", interpretation: "What you're stressing over isn't the real issue. Look further ahead." },
-        { title: "Focus on the Present", interpretation: "Don't worry about the aftermath; handle the melody in front of you first." }
-      ];
-
-      const answers = req.body?.lang === 'en' ? enAnswers : zhAnswers;
-
-      const guides = Object.keys(GUIDE_URLS);
-
-      const randomAnswer = answers[Math.floor(Math.random() * answers.length)];
-      const randomGuide = guides[Math.floor(Math.random() * guides.length)];
-
-      const fallbackGuidanceText = req.body?.lang === 'en' 
-        ? `'${randomGuide}' might give you the answer.`
-        : `『${randomGuide}』或許能給你答案。`;
-
-      res.json({
-        title: randomAnswer.title,
-        interpretation: randomAnswer.interpretation,
-        guidance: fallbackGuidanceText,
-        guideUrl: getGuideUrl(randomGuide),
-        isAI: false
-      });
+      // Let the frontend handle the fallback and Google form submission
+      return res.status(500).json({ error: 'Internal Server Error processing divination' });
     }
   });
 

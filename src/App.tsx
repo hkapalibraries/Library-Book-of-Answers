@@ -124,46 +124,123 @@ export default function App() {
       const finalMotivation = [...motivation, otherMotivation.trim()].filter(Boolean).join(';');
       const finalExpectation = [...expectation, otherExpectation.trim()].filter(Boolean).join(';');
 
+      const submitToGoogleFormLocal = async (divinationResult: string) => {
+        try {
+          const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSeUXZuS_1Mwd3UwKoBZmzrOX0tywa8opqM-mLcmVSmIxXywEQ/formResponse';
+          const formData = new URLSearchParams();
+          if (!repeat && identity) formData.append('entry.124506886', identity);
+          if (!repeat && discipline) formData.append('entry.1652002964', discipline);
+          if (!repeat && finalMotivation) formData.append('entry.1969355139', finalMotivation);
+          if (!repeat && finalExpectation) formData.append('entry.1984032152', finalExpectation);
+          if (!repeat && futureTopic) formData.append('entry.1056213779', futureTopic);
+          if (divinationResult) formData.append('entry.159526329', divinationResult);
+
+          await fetch(formUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: formData,
+          });
+        } catch (err) {
+          console.error('Failed to submit form directly:', err);
+        }
+      };
+
       const fetchPromise = fetch('/api/divination', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ identity, discipline, motivation: finalMotivation, expectation: finalExpectation, futureTopic, lang }),
       }).then(async (response) => {
-        if (!response.ok) throw new Error('Failed to fetch divination');
-        const data = await response.json();
-        
-        // Format result for Google Form
-        const divinationResult = `${data.title}\n\n${data.interpretation}\n\n推薦指引：${data.guidance}`;
-
-        // Submit to Google Form
-        fetch('/api/submit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            identity: repeat ? '' : identity, 
-            discipline: repeat ? '' : discipline, 
-            motivation: repeat ? '' : finalMotivation, 
-            expectation: repeat ? '' : finalExpectation, 
-            futureTopic: repeat ? '' : futureTopic, 
-            divinationResult 
-          }),
-        }).catch(err => console.error('Form submission failed:', err));
-
-        return data;
+        if (!response.ok) throw new Error('Failed to fetch divination api');
+        return await response.json();
       });
 
       const [_, data] = await Promise.all([timerPromise, fetchPromise]);
+      const divinationText = `${data.title}\n\n${data.interpretation}\n\n推薦指引：${data.guidance}`;
+      submitToGoogleFormLocal(divinationText);
+      
       setResult(data);
       setStep('result');
     } catch (error) {
-      console.error(error);
+      console.warn('API error encountered, switching to robust local fallback.', error);
       await timerPromise;
-      // Fallback result in case of error
-      setResult({
-        title: d.fallbackTitle,
-        interpretation: d.fallbackInterpretation,
-        guidance: d.fallbackGuidance
-      });
+
+      const GUIDE_URLS: Record<string, string> = {
+        "Subject Guides: Dance": "https://libguides.hkapa.edu/dance",
+        "Subject Guides: Drama": "https://libguides.hkapa.edu/drama",
+        "Subject Guides: Chinese Opera": "https://libguides.hkapa.edu/chinese_opera_chi_version",
+        "Subject Guides: F/TV": "https://libguides.hkapa.edu/ftv",
+        "Subject Guides: Music": "https://libguides.hkapa.edu/music",
+        "Subject Guides: TEA": "https://libguides.hkapa.edu/tea",
+        "How to use Primo@Lib (Basic & Advanced Search)": "https://libguides.hkapa.edu/primolib",
+        "Seminar Room & Solo Pod Booking System": "https://libguides.hkapa.edu/srbs",
+        "Embedding Video Resources in Canvas": "https://libguides.hkapa.edu/embedding_video_resources_in_canvas",
+        "How to download eBooks?": "https://libguides.hkapa.edu/c.php?g=956912",
+        "Keyword Search Techniques": "https://libguides.hkapa.edu/searchstrategy",
+        "Academic Writing": "https://libguides.hkapa.edu/academicwriting",
+        "Performing Arts Research": "https://libguides.hkapa.edu/performing_arts_research",
+        "Using Turnitin with Canvas 在Canvas平台上使用Turnitin": "https://libguides.hkapa.edu/turnitin",
+        "AI Literacy": "https://libguides.hkapa.edu/ai-literacy",
+        "Open Educational Resources (OER)": "https://libguides.hkapa.edu/OER",
+        "Scholarship Application": "https://libguides.hkapa.edu/scholarship"
+      };
+
+      const zhAnswers = [
+        { title: "就是現在", interpretation: "別再等待完美時機，現在就是最好的開始。" },
+        { title: "刪繁就簡", interpretation: "目前的困惑源於想得太多。試著去掉那些不必要的細節。" },
+        { title: "換個環境", interpretation: "答案不在你現在坐的位置，起身去另一個角落吧。" },
+        { title: "值得付出", interpretation: "雖然過程艱辛，但最終的結果會讓你覺得一切都值得。" },
+        { title: "暫時放下", interpretation: "先去喝杯咖啡或散個步。當你不再苦思時，靈感會自己敲門。" },
+        { title: "這不是重點", interpretation: "你正在糾結的問題其實並不關鍵，看遠一點。" },
+        { title: "專注於當下", interpretation: "不要擔心中場休息後的結果，先處理好眼前的這段旋律。" }
+      ];
+
+      const enAnswers = [
+        { title: "The Time is Now", interpretation: "Stop waiting for the perfect moment. Now is the best time to start." },
+        { title: "Simplify", interpretation: "Your confusion stems from overthinking. Try removing unnecessary details." },
+        { title: "Change Your Environment", interpretation: "The answer isn't where you are sitting now. Get up and go somewhere else." },
+        { title: "It's Worth It", interpretation: "The process may be tough, but the result will make it all worthwhile." },
+        { title: "Let It Go for Now", interpretation: "Go for a coffee or a walk. Inspiration will knock when you stop forcing it." },
+        { title: "Missing the Point", interpretation: "What you're stressing over isn't the real issue. Look further ahead." },
+        { title: "Focus on the Present", interpretation: "Don't worry about the aftermath; handle the melody in front of you first." }
+      ];
+
+      const fbAnswers = lang === 'en' ? enAnswers : zhAnswers;
+      const guidesList = Object.keys(GUIDE_URLS);
+      const randAns = fbAnswers[Math.floor(Math.random() * fbAnswers.length)];
+      const randGuide = guidesList[Math.floor(Math.random() * guidesList.length)];
+
+      const fbGuidanceText = lang === 'en' 
+        ? `'${randGuide}' might give you the answer.`
+        : `『${randGuide}』或許能給你答案。`;
+
+      const fbResult = {
+        title: randAns.title,
+        interpretation: randAns.interpretation,
+        guidance: fbGuidanceText,
+        guideUrl: GUIDE_URLS[randGuide] || "https://libguides.hkapa.edu/?b=g&d=a",
+        isAI: false
+      };
+
+      const finalMotivation = [...motivation, otherMotivation.trim()].filter(Boolean).join(';');
+      const finalExpectation = [...expectation, otherExpectation.trim()].filter(Boolean).join(';');
+      const divinationTextLocal = `${fbResult.title}\n\n${fbResult.interpretation}\n\n推薦指引：${fbResult.guidance} (降級模式)`;
+
+      try {
+        const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSeUXZuS_1Mwd3UwKoBZmzrOX0tywa8opqM-mLcmVSmIxXywEQ/formResponse';
+        const formData = new URLSearchParams();
+        if (!repeat && identity) formData.append('entry.124506886', identity);
+        if (!repeat && discipline) formData.append('entry.1652002964', discipline);
+        if (!repeat && finalMotivation) formData.append('entry.1969355139', finalMotivation);
+        if (!repeat && finalExpectation) formData.append('entry.1984032152', finalExpectation);
+        if (!repeat && futureTopic) formData.append('entry.1056213779', futureTopic);
+        formData.append('entry.159526329', divinationTextLocal);
+
+        await fetch(formUrl, { method: 'POST', mode: 'no-cors', body: formData });
+      } catch (e) {
+        console.error('Fallback Form sumbission failed', e);
+      }
+
+      setResult(fbResult);
       setStep('result');
     }
   };
