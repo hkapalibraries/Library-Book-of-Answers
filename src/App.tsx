@@ -183,7 +183,7 @@ export default function App() {
       className="min-h-screen text-ink font-oracle selection:bg-ink/20 overflow-hidden relative flex items-center justify-center p-4 bg-cover bg-center"
       style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1730371851241-aad9cf97525f")' }}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-[#3b0a60]/85 via-[#1a0532]/90 to-[#080112]/95 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[#3b0a60]/75 via-[#1a0532]/80 to-[#080112]/90 pointer-events-none" />
       <VintageFrame />
       <button 
         onClick={handleToggleLang}
