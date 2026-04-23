@@ -66,6 +66,7 @@ export default function App() {
   const [futureTopic, setFutureTopic] = useState('');
   const [countdown, setCountdown] = useState(5);
   const [result, setResult] = useState<DivinationResult | null>(null);
+  const [showInfo, setShowInfo] = useState(false);
 
   const d = t[lang];
 
@@ -264,7 +265,7 @@ export default function App() {
       <VintageFrame />
       <button 
         onClick={handleToggleLang}
-        className="absolute top-6 right-6 z-50 flex items-center justify-center gap-2 px-4 py-2 bg-black/40 border border-ink/30 text-ink/80 hover:text-ink hover:bg-ink/10 rounded-full transition-all text-sm tracking-widest uppercase shadow-[0_0_15px_rgba(255,255,255,0.05)] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] cursor-pointer"
+        className="absolute top-6 right-6 z-50 flex items-center justify-center gap-2 px-4 py-2 bg-white text-black hover:bg-white/90 rounded-full transition-all text-sm font-medium tracking-widest uppercase shadow-[0_4px_20px_rgba(0,0,0,0.3)] cursor-pointer"
       >
         <Globe className="w-4 h-4" />
         {lang === 'zh' ? 'EN' : '中'}
@@ -294,10 +295,16 @@ export default function App() {
                 <p className="font-georgia text-[18px] tracking-[2px] animate-text-glow relative inline-block">
                   {d.q2}
                 </p>
-                <Info className="w-5 h-5 ml-2 text-ink-light hover:text-ink cursor-help transition-all duration-300 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)] hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
+                <button 
+                  onClick={() => setShowInfo(!showInfo)}
+                  onBlur={() => setTimeout(() => setShowInfo(false), 200)}
+                  className="focus:outline-none"
+                >
+                  <Info className="w-5 h-5 ml-2 text-ink-light hover:text-ink cursor-help transition-all duration-300 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)] hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
+                </button>
                 
                 {/* Tooltip */}
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-[260px] p-4 bg-[#1a0532]/95 border border-ink/30 text-ink-light text-[14px] leading-relaxed rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.15)] backdrop-blur-md z-50 text-left pointer-events-none">
+                <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-[260px] p-4 bg-[#1a0532]/95 border border-ink/30 text-ink-light text-[14px] leading-relaxed rounded-md transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.15)] backdrop-blur-md z-50 text-left pointer-events-none ${showInfo ? 'opacity-100 visible' : 'opacity-0 invisible group-hover:opacity-100 group-hover:visible'}`}>
                   {d.tooltipText1}<strong className="text-ink font-medium">{d.tooltipHighlight}</strong>{d.tooltipText2}
                   <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-ink/30"></div>
                 </div>
