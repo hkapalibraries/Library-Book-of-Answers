@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BookOpen, ArrowRight, Book, Info, Globe } from 'lucide-react';
+import { BookOpen, ArrowRight, Book, Info, Globe, Library, Microscope, Compass, XCircle, ThumbsUp, Smile, Meh } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -60,45 +60,14 @@ export default function App() {
   const [identity, setIdentity] = useState('');
   const [discipline, setDiscipline] = useState('');
   const [motivation, setMotivation] = useState<string[]>([]);
-  const [otherMotivation, setOtherMotivation] = useState('');
   const [expectation, setExpectation] = useState<string[]>([]);
-  const [otherExpectation, setOtherExpectation] = useState('');
   const [futureTopic, setFutureTopic] = useState('');
   const [countdown, setCountdown] = useState(5);
   const [result, setResult] = useState<DivinationResult | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [activeOptionInfo, setActiveOptionInfo] = useState<string | null>(null);
 
   const d = t[lang];
-
-  const q3Presets = [
-    "Subject Guides (Dance, Drama, Chinese Opera, F/TV, Music, TEA)",
-    "How to use Primo@Lib (Basic & Advanced Search)",
-    "Seminar Room & Solo Pod Booking System",
-    "Embedding Video Resources in Canvas",
-    "How to download eBooks?",
-    "Keyword Search Techniques",
-    "Academic Writing",
-    "Performing Arts Research",
-    "Using Turnitin with Canvas 在Canvas平台上使用Turnitin",
-    "AI Literacy",
-    "Open Educational Resources (OER)",
-    "Scholarship Application",
-    d.noneSeen
-  ];
-  const q4Presets = [
-    "Subject Guides (Dance, Drama, Chinese Opera, F/TV, Music, TEA)",
-    "How to use Primo@Lib (Basic & Advanced Search)",
-    "Seminar Room & Solo Pod Booking System",
-    "Embedding Video Resources in Canvas",
-    "How to download eBooks?",
-    "Keyword Search Techniques",
-    "Academic Writing",
-    "Performing Arts Research",
-    "Using Turnitin with Canvas 在Canvas平台上使用Turnitin",
-    "AI Literacy",
-    "Open Educational Resources (OER)",
-    "Scholarship Application"
-  ];
 
   const handleNext = (nextStep: Step) => {
     setStep(nextStep);
@@ -122,8 +91,8 @@ export default function App() {
     });
 
     try {
-      const finalMotivation = [...motivation, otherMotivation.trim()].filter(Boolean).join(';');
-      const finalExpectation = [...expectation, otherExpectation.trim()].filter(Boolean).join(';');
+      const finalMotivation = motivation.map(id => d.q3Options.find(o => o.id === id)?.label || id).join(';');
+      const finalExpectation = expectation.map(id => d.q4Options.find(o => o.id === id)?.label || id).join(';');
 
       const submitToGoogleFormLocal = async (divinationResult: string) => {
         try {
@@ -222,8 +191,8 @@ export default function App() {
         isAI: false
       };
 
-      const finalMotivation = [...motivation, otherMotivation.trim()].filter(Boolean).join(';');
-      const finalExpectation = [...expectation, otherExpectation.trim()].filter(Boolean).join(';');
+      const finalMotivationFallback = motivation.map(id => d.q3Options.find(o => o.id === id)?.label || id).join(';');
+      const finalExpectationFallback = expectation.map(id => d.q4Options.find(o => o.id === id)?.label || id).join(';');
       const divinationTextLocal = `${fbResult.title}\n\n${fbResult.interpretation}\n\n推薦指引：${fbResult.guidance} (降級模式)`;
 
       try {
@@ -231,8 +200,8 @@ export default function App() {
         const formData = new URLSearchParams();
         if (!repeat && identity) formData.append('entry.124506886', identity);
         if (!repeat && discipline) formData.append('entry.1652002964', discipline);
-        if (!repeat && finalMotivation) formData.append('entry.1969355139', finalMotivation);
-        if (!repeat && finalExpectation) formData.append('entry.1984032152', finalExpectation);
+        if (!repeat && finalMotivationFallback) formData.append('entry.1969355139', finalMotivationFallback);
+        if (!repeat && finalExpectationFallback) formData.append('entry.1984032152', finalExpectationFallback);
         if (!repeat && futureTopic) formData.append('entry.1056213779', futureTopic);
         formData.append('entry.159526329', divinationTextLocal);
 
@@ -309,7 +278,13 @@ export default function App() {
                   <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-ink/30"></div>
                 </div>
               </div>
-              <p className="text-ink-light/70 text-[14px] mt-8 tracking-[1px]">{d.prelude}</p>
+              <div className="mt-10 py-4 px-6 border-y border-ink/30 bg-ink/5 relative overflow-hidden group/prelude">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-ink/10 to-transparent translate-x-[-100%] animate-[shimmer_3s_infinite]"></div>
+                <p className="text-ink text-[16px] tracking-[2px] font-medium relative z-10 flex items-center justify-center gap-2">
+                  <BookOpen className="w-4 h-4 opacity-70" />
+                  {d.prelude}
+                </p>
+              </div>
             </div>
             <Button 
               onClick={() => handleNext('q1')}
@@ -396,49 +371,90 @@ export default function App() {
                   <span className="text-ink-light text-[14px] tracking-[2px] uppercase font-medium">{d.page3Label}</span>
                   <h2 className="text-[18px] text-ink p-3 bg-ink/5 border-l-2 border-ink mt-2 text-left tracking-[1px]">{d.page3Title}</h2>
                 </div>
-                <div className="flex flex-col gap-3 mb-4 max-h-[300px] overflow-y-auto pr-2">
-                  {q3Presets.map(preset => {
-                    const isSelected = motivation.includes(preset);
+                
+                <div className="w-full h-[85px] md:h-[100px] bg-[#6a358c]/10 border border-ink/20 mt-4 overflow-hidden flex-shrink-0 flex">
+                  <img src="https://d329ms1y997xa5.cloudfront.net/sites/18098/banner/banner_5.jpg" alt="Library Banner" className="w-full h-full object-cover object-left" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-4 mt-6 relative z-20">
+                  {d.q3Options.map((option, index) => {
+                    const isSelected = motivation.includes(option.id);
+                    // Determine tooltip alignment based on column (0 for left, 1 for right, 2 for left, 3 for right, etc.)
+                    const isRightCol = index % 2 !== 0;
+                    const tooltipAlignClass = option.id === 'None' 
+                      ? 'right-1/2 translate-x-1/2' 
+                      : (isRightCol ? 'right-[-10px] md:right-0' : 'left-[-10px] md:left-0');
+                    const tooltipArrowClass = option.id === 'None'
+                      ? 'right-1/2 translate-x-1/2'
+                      : (isRightCol ? 'right-[20px] md:right-[30px]' : 'left-[20px] md:left-[30px]');
+
                     return (
-                      <button
-                        key={preset}
+                      <div
+                        key={option.id}
+                        role="button"
                         onClick={() => {
-                          setMotivation(prev => {
-                            if (preset === d.noneSeen) {
-                              return prev.includes(preset) ? [] : [preset];
-                            }
-                            const newSelection = prev.includes(preset) 
-                              ? prev.filter(p => p !== preset) 
-                              : [...prev.filter(p => p !== d.noneSeen), preset];
-                            return newSelection;
-                          });
+                          if (option.id === 'None') {
+                            setMotivation(prev => prev.includes('None') ? [] : ['None']);
+                          } else {
+                            setMotivation(prev => {
+                              const prevFiltered = prev.filter(p => p !== 'None');
+                              return prevFiltered.includes(option.id)
+                                ? prevFiltered.filter(p => p !== option.id)
+                                : [...prevFiltered, option.id];
+                            });
+                          }
                         }}
-                        className={`text-[15px] px-5 py-4 border transition-all rounded-none font-medium text-left ${
+                        className={`relative flex flex-col items-center justify-center p-6 border transition-all duration-300 rounded-none gap-3 font-medium text-center cursor-pointer ${
                           isSelected 
-                            ? 'bg-ink text-[#1a0532] border-ink' 
-                            : 'bg-transparent border-border-ink text-ink hover:border-ink/80 hover:bg-ink/5'
-                        }`}
+                            ? 'bg-ink/10 text-ink border-ink shadow-[0_0_15px_rgba(255,255,255,0.15)] scale-100' 
+                            : 'bg-transparent border-border-ink text-ink-light hover:border-ink/80 hover:bg-ink/5 hover:text-ink'
+                        } ${option.id === 'None' ? 'col-span-2 flex-row py-4' : ''}`}
                       >
-                        {preset}
-                      </button>
+                        {option.desc && (
+                          <div className="absolute top-2 right-2 z-20">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveOptionInfo(activeOptionInfo === option.id ? null : option.id);
+                              }}
+                              onBlur={() => setTimeout(() => setActiveOptionInfo(null), 200)}
+                              className="focus:outline-none p-2 -m-2 group/info"
+                            >
+                              <Info className="w-5 h-5 md:w-4 md:h-4 text-ink-light hover:text-ink transition-all drop-shadow-[0_0_5px_rgba(255,255,255,0.3)] hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
+                              
+                              <div className={`absolute bottom-full mb-3 w-[260px] p-4 pointer-events-none bg-[#1a0532]/95 border border-ink/30 text-ink-light text-[13.5px] leading-relaxed break-words whitespace-normal rounded-md shadow-[0_0_20px_rgba(255,255,255,0.2)] backdrop-blur-md text-left transition-all duration-300 z-50 ${tooltipAlignClass} ${activeOptionInfo === option.id ? 'opacity-100 visible' : 'opacity-0 invisible md:group-hover/info:opacity-100 md:group-hover/info:visible'}`}>
+                                {option.desc}
+                                <div className={`absolute top-full border-4 border-transparent border-t-ink/30 ${tooltipArrowClass}`}></div>
+                              </div>
+                            </button>
+                          </div>
+                        )}
+                        {(() => {
+                          const iconClass = option.id === 'None' ? "w-6 h-6 mr-1" : "w-10 h-10 mb-1";
+                          switch (option.icon) {
+                            case 'library': return <Library className={iconClass} />;
+                            case 'book': return <Book className={iconClass} />;
+                            case 'microscope': return <Microscope className={iconClass} />;
+                            case 'compass': return <Compass className={iconClass} />;
+                            case 'xcircle': return <XCircle className={iconClass} />;
+                            default: return <Info className={iconClass} />;
+                          }
+                        })()}
+                        <span className="text-[15px]">{option.label}</span>
+                      </div>
                     );
                   })}
                 </div>
-                <Textarea 
-                  value={otherMotivation}
-                  onChange={(e) => setOtherMotivation(e.target.value)}
-                  placeholder={d.otherPlaceholder}
-                  className="min-h-[100px] bg-transparent border-border-ink text-ink focus-visible:ring-ink/70 resize-none text-[17px] rounded-none font-light p-4"
-                />
                 <div className="flex justify-between mt-10">
                   <Button variant="ghost" onClick={() => handleNext('q2')} className="text-ink-light hover:text-ink hover:bg-transparent tracking-[2px] uppercase text-[14px] rounded-none px-0">
                     {d.prevBtn}
                   </Button>
                   <Button 
-                    disabled={motivation.length === 0 && otherMotivation.trim().length === 0} 
+                    disabled={motivation.length === 0} 
                     onClick={() => {
-                      const allSelected = q4Presets.every(preset => motivation.includes(preset));
-                      if (allSelected) {
+                      if (motivation.includes('None')) {
+                        setExpectation([]); // Clear expectation if they haven't used guides
                         handleNext('q5');
                       } else {
                         handleNext('q4');
@@ -462,41 +478,41 @@ export default function App() {
                   <span className="text-ink-light text-[14px] tracking-[2px] uppercase font-medium">{d.page4Label}</span>
                   <h2 className="text-[18px] text-ink p-3 bg-ink/5 border-l-2 border-ink mt-2 text-left tracking-[1px]">{d.page4Title}</h2>
                 </div>
-                <div className="flex flex-col gap-3 mb-4 max-h-[300px] overflow-y-auto pr-2">
-                  {(motivation.includes(d.noneSeen) ? q4Presets : q4Presets.filter(preset => !motivation.includes(preset))).map(preset => {
-                    const isSelected = expectation.includes(preset);
+                <div className="grid grid-cols-1 gap-4 mb-4 max-h-[350px] overflow-y-auto pr-2">
+                  {d.q4Options.map(option => {
+                    const isSelected = expectation.includes(option.id);
                     return (
                       <button
-                        key={preset}
-                        onClick={() => {
-                          setExpectation(prev => 
-                            prev.includes(preset) ? prev.filter(p => p !== preset) : [...prev, preset]
-                          );
-                        }}
-                        className={`text-[15px] px-5 py-4 border transition-all rounded-none font-medium text-left ${
+                        key={option.id}
+                        onClick={() => setExpectation([option.id])}
+                        className={`flex items-center p-5 border transition-all duration-300 rounded-none gap-4 font-medium text-left ${
                           isSelected 
-                            ? 'bg-ink text-[#1a0532] border-ink' 
-                            : 'bg-transparent border-border-ink text-ink hover:border-ink/80 hover:bg-ink/5'
+                            ? 'bg-ink/10 text-ink border-ink shadow-[0_0_15px_rgba(255,255,255,0.15)] scale-[1.02]' 
+                            : 'bg-transparent border-border-ink text-ink-light hover:border-ink/80 hover:bg-ink/5 hover:text-ink'
                         }`}
                       >
-                        {preset}
+                        {(() => {
+                          const iconClass = "w-6 h-6";
+                          switch (option.icon) {
+                            case 'thumbsup': return <ThumbsUp className={iconClass} />;
+                            case 'smile': return <Smile className={iconClass} />;
+                            case 'meh': return <Meh className={iconClass} />;
+                            default: return <Info className={iconClass} />;
+                          }
+                        })()}
+                        <span className="text-[16px]">{option.label}</span>
                       </button>
                     );
                   })}
                 </div>
-                <Textarea 
-                  value={otherExpectation}
-                  onChange={(e) => setOtherExpectation(e.target.value)}
-                  placeholder={d.otherPlaceholder}
-                  className="min-h-[100px] bg-transparent border-border-ink text-ink focus-visible:ring-ink/70 resize-none text-[17px] rounded-none font-light p-4"
-                />
                 <div className="flex justify-between mt-10">
                   <Button variant="ghost" onClick={() => handleNext('q3')} className="text-ink-light hover:text-ink hover:bg-transparent tracking-[2px] uppercase text-[14px] rounded-none px-0">
                     {d.prevBtn}
                   </Button>
                   <Button 
+                    disabled={expectation.length === 0}
                     onClick={() => handleNext('q5')}
-                    className="bg-transparent border border-ink text-ink hover:bg-ink/10 rounded-none tracking-[2px] uppercase text-[15px] px-6 py-5 shadow-[0_0_10px_rgba(255,255,255,0.1)] hover:shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                    className="bg-transparent border border-ink text-ink hover:bg-ink/10 disabled:opacity-50 rounded-none tracking-[2px] uppercase text-[15px] px-6 py-5 shadow-[0_0_10px_rgba(255,255,255,0.1)] hover:shadow-[0_0_15px_rgba(255,255,255,0.2)]"
                   >
                     {d.nextBtn} <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
@@ -514,6 +530,17 @@ export default function App() {
                   <span className="text-ink-light text-[14px] tracking-[2px] uppercase font-medium">{d.page5Label}</span>
                   <h2 className="text-[18px] text-ink p-3 bg-ink/5 border-l-2 border-ink mt-2 text-left tracking-[1px]">{d.page5Title}</h2>
                 </div>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {d.q5Presets.map(preset => (
+                    <button 
+                      key={preset}
+                      onClick={() => setFutureTopic(prev => prev ? `${prev}, ${preset}` : preset)}
+                      className="px-4 py-2 border border-ink/40 rounded-none text-ink hover:bg-ink/10 hover:border-ink/80 text-[14px] transition-all duration-300 shadow-[0_0_5px_rgba(255,255,255,0.05)] hover:shadow-[0_0_10px_rgba(255,255,255,0.15)]"
+                    >
+                      + {preset}
+                    </button>
+                  ))}
+                </div>
                 <Textarea 
                   value={futureTopic}
                   onChange={(e) => setFutureTopic(e.target.value)}
@@ -522,8 +549,7 @@ export default function App() {
                 />
                 <div className="flex justify-between mt-10">
                   <Button variant="ghost" onClick={() => {
-                    const allSelected = q4Presets.every(preset => motivation.includes(preset));
-                    if (allSelected) {
+                    if (motivation.includes('None')) {
                       handleNext('q3');
                     } else {
                       handleNext('q4');
@@ -620,9 +646,7 @@ export default function App() {
                       setIdentity('');
                       setDiscipline('');
                       setMotivation([]);
-                      setOtherMotivation('');
                       setExpectation([]);
-                      setOtherExpectation('');
                       setFutureTopic('');
                       setStep('welcome');
                     }}
