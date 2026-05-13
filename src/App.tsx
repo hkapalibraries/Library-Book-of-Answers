@@ -372,9 +372,9 @@ export default function App() {
                   <h2 className="text-[18px] text-ink p-3 bg-ink/5 border-l-2 border-ink mt-2 text-left tracking-[1px]">{d.page3Title}</h2>
                 </div>
                 
-                <div className="w-full h-[85px] md:h-[100px] bg-[#6a358c]/10 border border-ink/20 mt-4 overflow-hidden flex-shrink-0 flex">
-                  <img src="https://d329ms1y997xa5.cloudfront.net/sites/18098/banner/banner_5.jpg" alt="Library Banner" className="w-full h-full object-cover object-left" />
-                </div>
+                <a href="https://libguides.hkapa.edu/" target="_blank" rel="noopener noreferrer" className="w-full h-[85px] md:h-[100px] bg-[#6a358c]/10 border border-ink/20 mt-4 overflow-hidden flex-shrink-0 flex group block">
+                  <img src="https://d329ms1y997xa5.cloudfront.net/sites/18098/banner/banner_5.jpg" alt="Library Banner" className="w-full h-full object-cover object-left group-hover:scale-105 transition-transform duration-500" />
+                </a>
 
                 <div className="grid grid-cols-2 gap-4 mb-4 mt-6 relative z-20">
                   {d.q3Options.map((option, index) => {
